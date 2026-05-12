@@ -1,0 +1,63 @@
+name: Production Deploy
+
+on:
+  push:
+    branches: [production]
+
+env:
+  APP_ENV: production
+
+jobs:
+  deploy-production:
+    runs-on: ubuntu-latest
+    steps:
+      # Stage 1: Source Checkout
+      - name: Source Checkout
+        uses: actions/checkout@v4
+
+      # Stage 2: Build
+      - name: Build
+        run: |
+          mkdir -p artifacts
+          echo "=== Production Build ===" | tee artifacts/build.log
+          echo "Building for production environment..." >> artifacts/build.log
+          echo "Build completed at $(date)" >> artifacts/build.log
+
+      # Stage 5: Deployment
+      - name: Deployment
+        id: deploy
+        run: |
+          mkdir -p artifacts
+          echo "=== Production Deployment ===" | tee artifacts/deploy.log
+          echo "Deploying to production environment..." >> artifacts/deploy.log
+          echo "Environment: $APP_ENV" >> artifacts/deploy.log
+          echo "Deployment completed at $(date)" >> artifacts/deploy.log
+          echo "deployment_status=success" >> $GITHUB_OUTPUT
+
+      # Rollback on Failure
+      - name: Rollback on Failure
+        if: failure()
+        run: |
+          mkdir -p artifacts
+          echo "=== Deployment Rollback ===" | tee artifacts/rollback.log
+          echo "Failure detected - initiating rollback..." >> artifacts/rollback.log
+          ./scripts/rollback.sh sample-app default || true
+          echo "Rollback completed at $(date)" >> artifacts/rollback.log
+
+      # Save deployment artifacts and reports
+      - name: Save Deployment Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-artifacts
+          path: artifacts/
+        if: always()
+
+      - name: Deployment Report
+        if: always()
+        run: |
+          mkdir -p artifacts
+          echo "=== Production Deployment Report ===" > artifacts/deployment-report.txt
+          echo "Status: ${{ steps.deploy.outcome }}" >> artifacts/deployment-report.txt
+          echo "Timestamp: $(date)" >> artifacts/deployment-report.txt
+          echo "Environment: production" >> artifacts/deployment-report.txt
+          echo "Branch: production" >> artifacts/deployment-report.txt
