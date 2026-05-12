@@ -2,7 +2,8 @@ name: Production Deploy
 
 on:
   push:
-    branches: [production]
+    branches: [production, main, master]
+  workflow_dispatch:
 
 env:
   APP_ENV: production
