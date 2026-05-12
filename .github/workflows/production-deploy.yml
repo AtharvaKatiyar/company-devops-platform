@@ -161,13 +161,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Deployment Logs
-        run: |
-          mkdir -p deployment/logs
-          mkdir -p deployment/rollback
-
       - name: Pre-Deployment Setup
         run: |
+          mkdir -p deployment/logs deployment/rollback
           echo "=== Production Deployment Started ===" | tee deployment/logs/deploy.log
           echo "Deployment Time: $(date)" >> deployment/logs/deploy.log
           echo "Environment: $APP_ENV" >> deployment/logs/deploy.log
@@ -176,6 +172,7 @@ jobs:
 
       - name: Validate Deployment Readiness
         run: |
+          mkdir -p deployment/logs
           echo "" >> deployment/logs/deploy.log
           echo "=== Deployment Readiness Check ===" >> deployment/logs/deploy.log
           echo "Verifying deployment readiness..." >> deployment/logs/deploy.log
@@ -189,6 +186,7 @@ jobs:
 
       - name: Execute Production Deployment
         run: |
+          mkdir -p deployment/logs
           echo "" >> deployment/logs/deploy.log
           echo "=== Deployment Execution ===" >> deployment/logs/deploy.log
           
@@ -211,6 +209,7 @@ jobs:
 
       - name: Post-Deployment Verification
         run: |
+          mkdir -p deployment/logs
           echo "" >> deployment/logs/deploy.log
           echo "=== Post-Deployment Verification ===" >> deployment/logs/deploy.log
           
@@ -230,6 +229,7 @@ jobs:
 
       - name: Store Deployment Checkpoint
         run: |
+          mkdir -p deployment/rollback
           echo "$(git rev-parse --short HEAD)" > deployment/rollback/last-successful-commit.txt
           echo "$(date)" > deployment/rollback/deployment-timestamp.txt
 
