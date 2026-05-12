@@ -148,15 +148,20 @@ jobs:
           echo "" >> reports/opa/validation.log
           echo "=== Policy Compliance Status ===" >> reports/opa/validation.log
           
-          DEPLOY_VIOLATIONS=$(grep -c '"deny"' reports/opa/deployment-report.json 2>/dev/null || echo "0")
-          SECURITY_VIOLATIONS=$(grep -c '"deny"' reports/opa/security-report.json 2>/dev/null || echo "0")
-          CONTAINER_VIOLATIONS=$(grep -c '"deny"' reports/opa/container-report.json 2>/dev/null || echo "0")
+          DEPLOY_VIOLATIONS=$(grep -c '"deny"' reports/opa/deployment-report.json 2>/dev/null) || DEPLOY_VIOLATIONS="0"
+          SECURITY_VIOLATIONS=$(grep -c '"deny"' reports/opa/security-report.json 2>/dev/null) || SECURITY_VIOLATIONS="0"
+          CONTAINER_VIOLATIONS=$(grep -c '"deny"' reports/opa/container-report.json 2>/dev/null) || CONTAINER_VIOLATIONS="0"
+          
+          # Ensure variables have numeric values
+          DEPLOY_VIOLATIONS=${DEPLOY_VIOLATIONS:-0}
+          SECURITY_VIOLATIONS=${SECURITY_VIOLATIONS:-0}
+          CONTAINER_VIOLATIONS=${CONTAINER_VIOLATIONS:-0}
           
           echo "Deployment Policy Violations: $DEPLOY_VIOLATIONS" >> reports/opa/validation.log
           echo "Security Policy Violations: $SECURITY_VIOLATIONS" >> reports/opa/validation.log
           echo "Container Policy Violations: $CONTAINER_VIOLATIONS" >> reports/opa/validation.log
           
-          TOTAL=$((DEPLOY_VIOLATIONS + SECURITY_VIOLATIONS + CONTAINER_VIOLATIONS))
+          TOTAL=$(( ${DEPLOY_VIOLATIONS//[!0-9]/} + ${SECURITY_VIOLATIONS//[!0-9]/} + ${CONTAINER_VIOLATIONS//[!0-9]/} ))
           
           if [ "$TOTAL" -eq 0 ]; then
             echo "✓ All policies PASSED" >> reports/opa/validation.log
@@ -287,8 +292,12 @@ jobs:
         run: |
           echo "=== Quality Gate Evaluation ===" | tee reports/sonarqube/quality-gate.log
           
-          CRED_ISSUES=$(grep -c "password\|secret" reports/sonarqube/security-findings.txt 2>/dev/null || echo "0")
-          SHELL_ERRORS=$(grep -c "error" reports/sonarqube/shellcheck-report.txt 2>/dev/null || echo "0")
+          CRED_ISSUES=$(grep -c "password\|secret" reports/sonarqube/security-findings.txt 2>/dev/null) || CRED_ISSUES="0"
+          SHELL_ERRORS=$(grep -c "error" reports/sonarqube/shellcheck-report.txt 2>/dev/null) || SHELL_ERRORS="0"
+          
+          # Ensure variables have numeric values
+          CRED_ISSUES=${CRED_ISSUES:-0}
+          SHELL_ERRORS=${SHELL_ERRORS:-0}
           
           echo "Credentials Found: $CRED_ISSUES" | tee -a reports/sonarqube/quality-gate.log
           echo "Shell Errors: $SHELL_ERRORS" | tee -a reports/sonarqube/quality-gate.log
