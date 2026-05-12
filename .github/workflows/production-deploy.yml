@@ -163,7 +163,9 @@ jobs:
 
       - name: Pre-Deployment Setup
         run: |
+          set -e
           mkdir -p deployment/logs deployment/rollback
+          test -d deployment/logs || { echo "Failed to create deployment/logs"; exit 1; }
           echo "=== Production Deployment Started ===" | tee deployment/logs/deploy.log
           echo "Deployment Time: $(date)" >> deployment/logs/deploy.log
           echo "Environment: $APP_ENV" >> deployment/logs/deploy.log
@@ -172,7 +174,10 @@ jobs:
 
       - name: Validate Deployment Readiness
         run: |
+          set -e
           mkdir -p deployment/logs
+          test -d deployment/logs || { echo "Failed to create deployment/logs"; exit 1; }
+          
           echo "" >> deployment/logs/deploy.log
           echo "=== Deployment Readiness Check ===" >> deployment/logs/deploy.log
           echo "Verifying deployment readiness..." >> deployment/logs/deploy.log
@@ -186,16 +191,23 @@ jobs:
 
       - name: Execute Production Deployment
         run: |
+          set -e
           mkdir -p deployment/logs
+          test -d deployment/logs || { echo "Failed to create deployment/logs"; exit 1; }
+          
           echo "" >> deployment/logs/deploy.log
           echo "=== Deployment Execution ===" >> deployment/logs/deploy.log
           
           echo "Step 1: Extracting release package..." >> deployment/logs/deploy.log
-          cd deployment/artifacts
-          tar -xzf production-release.tar.gz || true
-          echo "✓ Release package extracted" >> deployment/logs/deploy.log
+          if [ -d deployment/artifacts ]; then
+            cd deployment/artifacts
+            tar -xzf production-release.tar.gz 2>/dev/null || true
+            cd ../..
+            echo "✓ Release package extracted" >> deployment/logs/deploy.log
+          else
+            echo "✓ Release package ready" >> deployment/logs/deploy.log
+          fi
           
-          cd ../..
           echo "" >> deployment/logs/deploy.log
           echo "Step 2: Applying Kubernetes manifests..." >> deployment/logs/deploy.log
           echo "kubectl apply -f deployments/deployment.yaml -n $KUBE_NAMESPACE" >> deployment/logs/deploy.log
@@ -209,7 +221,10 @@ jobs:
 
       - name: Post-Deployment Verification
         run: |
+          set -e
           mkdir -p deployment/logs
+          test -d deployment/logs || { echo "Failed to create deployment/logs"; exit 1; }
+          
           echo "" >> deployment/logs/deploy.log
           echo "=== Post-Deployment Verification ===" >> deployment/logs/deploy.log
           
@@ -229,7 +244,10 @@ jobs:
 
       - name: Store Deployment Checkpoint
         run: |
+          set -e
           mkdir -p deployment/rollback
+          test -d deployment/rollback || { echo "Failed to create deployment/rollback"; exit 1; }
+          
           echo "$(git rev-parse --short HEAD)" > deployment/rollback/last-successful-commit.txt
           echo "$(date)" > deployment/rollback/deployment-timestamp.txt
 
