@@ -331,11 +331,9 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Create Deployment Artifacts
-        run: mkdir -p artifacts
-
       - name: Pre-Deployment Checks
         run: |
+          mkdir -p artifacts
           echo "=== Pre-Deployment Checks ===" | tee artifacts/deploy.log
           echo "Deployment Time: $(date)" >> artifacts/deploy.log
           echo "Environment: $APP_ENV" >> artifacts/deploy.log
@@ -343,6 +341,7 @@ jobs:
 
       - name: Validate Deployment Configuration
         run: |
+          mkdir -p artifacts
           echo "" >> artifacts/deploy.log
           echo "=== Configuration Validation ===" >> artifacts/deploy.log
           
@@ -353,6 +352,7 @@ jobs:
 
       - name: Prepare Deployment Package
         run: |
+          mkdir -p artifacts
           echo "" >> artifacts/deploy.log
           echo "=== Preparing Deployment ===" >> artifacts/deploy.log
           echo "Bundling application files..." >> artifacts/deploy.log
@@ -361,6 +361,7 @@ jobs:
 
       - name: Execute Deployment
         run: |
+          mkdir -p artifacts
           echo "" >> artifacts/deploy.log
           echo "=== Deployment Execution ===" >> artifacts/deploy.log
           echo "Deploying to development environment..." >> artifacts/deploy.log
@@ -370,6 +371,7 @@ jobs:
 
       - name: Post-Deployment Verification
         run: |
+          mkdir -p artifacts
           echo "" >> artifacts/deploy.log
           echo "=== Post-Deployment Verification ===" >> artifacts/deploy.log
           echo "Verifying deployment status..." >> artifacts/deploy.log
